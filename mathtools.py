@@ -36,7 +36,7 @@ def intersects(line, ray):
     intersection_on_ray = diff.cross(vector_along_line)
 
     if intersection_on_ray > 0 and 0 < intersection_on_line < 1:
-        return ray_start + intersection_on_ray * ray_direction
+        return line_start + intersection_on_line * vector_along_line
 
 
 def line_to_ray(line):
