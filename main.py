@@ -2,8 +2,21 @@ import pygame
 import pygame.gfxdraw
 import config
 import threading
-import queue
+from queue import Queue
+import light_sim
 pygame.init()
+
+
+class Simulator(threading.Thread):
+    def __init__(self, queue, light_sources, interacting_objects, *args, **kwargs):
+        threading.Thread.__init__(*args, **kwargs)
+        self.queue: Queue = queue
+        self.light_sources = light_sources
+        self.interacting_objects = interacting_objects
+
+    def run(self):
+        for ray in light_sim.simulate(self.light_sources, self.interacting_objects)
+            self.queue.put(ray)
 
 class AppWindow:
     pass
@@ -44,22 +57,14 @@ while running:
 
     try:
         for _ in range(config.max_frame_lines):
-            pass
-            """
-            #THREAD here
             drawingSurface = pygame.Surface((width, height))
-            wavelength, points=queue.pop()
-            colour=(wavelength_to_rgb(460)) #460 to 620
-            for index, point in enumerate(points):
-                if index == len(points):
-                    pass
-                else:
-                    p_x, p_y = point
-                    pnext_x, pnext_y = points[index+1]
-                    pygame.gfxdraw.line(drawingSurface, p_x, p_y, pnext_x, pnext_y)
-                    
-            screen.blit(myNewSurface1, (0,0), special_flags=pygame.BLEND_RGBA_ADD)
-            """
+            points, wavelength = queue.pop()
+            colour = wavelength_to_rgb(460) #460 to 620
+            # for index, point in enumerate(points):
+            #     p_x, p_y = point
+            #     pnext_x, pnext_y = points[index+1]
+            #     pygame.gfxdraw.line(drawingSurface, p_x, p_y, pnext_x, pnext_y)
+            # screen.blit(myNewSurface1, (0,0), special_flags=pygame.BLEND_RGBA_ADD)
 
     except queue.Empty:
         pass
