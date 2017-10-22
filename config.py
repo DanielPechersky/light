@@ -16,12 +16,12 @@ start = pygame.math.Vector2(500, 500)
 
 
 def getLightSources():
-    return [interacting_objects.PointSource(position=start, rays_per_color=50,
+    return [interacting_objects.PointSource(position=start, rays_per_color=500,
 
                                             wavelengths=[620, 555])]
 def getInteractingObjects():
-    sides = [pygame.math.Vector2(0, 0), pygame.math.Vector2(6, 0), pygame.math.Vector2(6, 6), pygame.math.Vector2(0, 6)]
-    sides_offset = [side + start + pygame.math.Vector2(3, 0) for side in sides]
+    sides = [pygame.math.Vector2(0, 0), pygame.math.Vector2(20, 0), pygame.math.Vector2(20, 20), pygame.math.Vector2(0, 20)]
+    sides_offset = [side + start + pygame.math.Vector2(20, 0) for side in sides]
     sides_objects = [
         interacting_objects.CircleSegmentSurface((sides_offset[0], sides_offset[1]), 20, True),
         interacting_objects.LineSegmentSurface((sides_offset[1], sides_offset[2])),

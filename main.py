@@ -54,7 +54,7 @@ class AppWindow:
 
         self.queue = queue.Queue()
         self.simulation = Simulation(self.queue, light_sources, interacting_objects)
-        self.simulation.run()
+        self.simulation.start()
         self.redraw()
 
     def wavelength_to_rgb(self, wavelength):
@@ -83,15 +83,15 @@ class AppWindow:
                     points, wavelength = self.queue.get_nowait()
                     drawingSurface = pygame.Surface((self.dimension.width, self.dimension.height))
                     colour = self.wavelength_to_rgb(wavelength)  # 460 to 620
-                    for index in range(len(points) - 2):
+                    for index in range(len(points) - 1):
                         p_x, p_y = map(int, points[index])
                         pnext_x, pnext_y = map(int, points[index + 1])
                         pygame.gfxdraw.line(drawingSurface, p_x, p_y, pnext_x, pnext_y, colour)
-                    line_start, line_end = pygame.math.Vector2(points[-2]), pygame.math.Vector2(points[-1])
-                    line_end = self.truncate(mathtools.line_to_ray((line_start, line_end)))
-                    p_x, p_y = map(int, line_start)
-                    pnext_x, pnext_y = map(int, line_end)
-                    pygame.gfxdraw.line(drawingSurface, p_x, p_y, pnext_x, pnext_y, colour)
+                    # line_start, line_end = pygame.math.Vector2(points[-2]), pygame.math.Vector2(points[-1])
+                    # line_end = self.truncate(mathtools.line_to_ray((line_start, line_end)))
+                    # p_x, p_y = map(int, line_start)
+                    # pnext_x, pnext_y = map(int, line_end)
+                    # pygame.gfxdraw.line(drawingSurface, p_x, p_y, pnext_x, pnext_y, colour)
 
                     self.screen.blit(drawingSurface, (0, 0), special_flags=pygame.BLEND_RGBA_ADD)
                     pygame.display.flip()
@@ -111,13 +111,14 @@ class AppWindow:
         # circleLayer = pygame.Surface((width, height))
         # col = pygame.Color(200, 10, 40, 100)
 
-
-
     def update(self):
         while self.running:
             self.update_events()
+            if self.is_simulating and not self.simulation.is_alive():
+                self.simulation.join()
+                del self.simulation
             self.draw_new_rays()
-            self.clock.tick(20)
+            self.clock.tick(60)
 
 
 if __name__ == "__main__":
