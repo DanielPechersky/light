@@ -27,5 +27,5 @@ def simulate_ray(ray, wavelength, interacting_objects):
                             if len(points) == config.max_interactions:
                                 return points
             else:
-                points.append((ray[0]+ray[1])*10000)
+                points.append(ray[0]+(ray[1]-ray[0])*10000)
                 return points
