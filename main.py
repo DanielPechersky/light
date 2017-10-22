@@ -25,6 +25,7 @@ class Simulation(threading.Thread):
     def stop(self):
         self._stop_event.set()
 
+
 class AppWindow:
     def __init__(self):
         pygame.init()
@@ -71,7 +72,7 @@ class AppWindow:
         intercepts = list(filter(lambda x: x is not None, (mathtools.intersects(line, ray)
                                                            for line in mathtools.rect_lines(self.dimension))))
         intercepts.sort(key=lambda intercept: ray[0].distance_squared_to(intercept))
-        if (len(intercepts) == 0):
+        if len(intercepts) == 0:
             return ray[0]
         return intercepts[0]
 
@@ -80,12 +81,11 @@ class AppWindow:
             try:
                 for _ in range(config.max_frame_lines):
                     points, wavelength = self.queue.get_nowait()
-                    points = [(int(x), int(y)) for x, y in points]
                     drawingSurface = pygame.Surface((self.dimension.width, self.dimension.height))
                     colour = self.wavelength_to_rgb(wavelength)  # 460 to 620
                     for index in range(len(points) - 2):
-                        p_x, p_y = points[index]
-                        pnext_x, pnext_y = points[index + 1]
+                        p_x, p_y = map(int, points[index])
+                        pnext_x, pnext_y = map(int, points[index + 1])
                         pygame.gfxdraw.line(drawingSurface, p_x, p_y, pnext_x, pnext_y, colour)
                     line_start, line_end = pygame.math.Vector2(points[-2]), pygame.math.Vector2(points[-1])
                     line_end = self.truncate(mathtools.line_to_ray((line_start, line_end)))
@@ -95,12 +95,8 @@ class AppWindow:
 
                     self.screen.blit(drawingSurface, (0, 0), special_flags=pygame.BLEND_RGBA_ADD)
                     pygame.display.flip()
-
-
             except queue.Empty:
                 pass
-
-        #draw(self)
 
     #def draw(self):
         # ds = pygame.Surface((self.dimension.width, self.dimension.height))

@@ -2,6 +2,7 @@ import pygame
 import functools
 import math
 import numpy as np
+import mathtools
 
 
 class LineSegmentSurface:
@@ -14,17 +15,9 @@ class LineSegmentSurface:
         self.bounding_box.normalize()
 
     def get_intersection(self, ray):
-        line_start = self.line[0]
-        ray_start, ray_direction = ray
-        cross = self.vector_along_line.cross(ray_direction)
-        if cross == 0:
-            return None
-        diff = line_start - ray_start
-        intersection_on_line = diff.cross(ray_direction)
-        intersection_on_ray = diff.cross(self.vector_along_line)
-
-        if intersection_on_ray > 0 and 0 < intersection_on_line < 1:
-            return ray_start + intersection_on_ray * ray_direction, self.normal
+        intersect = mathtools.intersects(self.line, ray)
+        if intersect is not None:
+            return intersect, self.normal
 
     @property
     def vector_along_line(self):

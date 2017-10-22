@@ -10,14 +10,14 @@ def rect_lines(rect):
 
 def does_intersect(line, ray):
     line_start, line_end = line
-    vector_along_line = line_end-line_start
+    vector_along_line = line_end - line_start
     ray_start, ray_direction = ray
-    cross = vector_along_line.cross(ray_direction)
+    cross = ray_direction.cross(vector_along_line)
     if cross == 0:
         return False
     diff = line_start - ray_start
-    intersection_on_line = diff.cross(ray_direction)
-    intersection_on_ray = diff.cross(vector_along_line)
+    intersection_on_ray = diff.cross(vector_along_line) / cross
+    intersection_on_line = diff.cross(ray_direction) / cross
 
     if intersection_on_ray > 0 and 0 < intersection_on_line < 1:
         return True
@@ -28,12 +28,12 @@ def intersects(line, ray):
     line_start, line_end = line
     vector_along_line = line_end-line_start
     ray_start, ray_direction = ray
-    cross = vector_along_line.cross(ray_direction)
+    cross = ray_direction.cross(vector_along_line)
     if cross == 0:
         return None
     diff = line_start - ray_start
-    intersection_on_line = diff.cross(ray_direction)
-    intersection_on_ray = diff.cross(vector_along_line)
+    intersection_on_ray = diff.cross(vector_along_line) / cross
+    intersection_on_line = diff.cross(ray_direction) / cross
 
     if intersection_on_ray > 0 and 0 < intersection_on_line < 1:
         return line_start + intersection_on_line * vector_along_line
