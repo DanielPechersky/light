@@ -37,3 +37,8 @@ def intersects(line, ray):
 
     if intersection_on_ray > 0 and 0 < intersection_on_line < 1:
         return ray_start + intersection_on_ray * ray_direction
+
+
+def line_to_ray(line):
+    start_line, end_line = line
+    return start_line, (end_line - start_line).normalize()
