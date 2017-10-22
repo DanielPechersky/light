@@ -62,7 +62,7 @@ class CircleSegmentSurface:
         sqrt_disc = disc ** .5
         intersections = [ray_start+intersection_on_line for intersection_on_line in
                          (-b+sqrt_disc/(2*a), -b-sqrt_disc/(2*a))
-                         if intersection_on_line >= 0 and self.cut.cross(ray_start+intersection_on_line) >= 0]
+                         if intersection_on_line >= 0 and self.cut.angle_to(ray_start+intersection_on_line) >= 0]
         if list(intersections) == 0:
             return None
         intersections.sort(key=lambda intersect: ray[0].distance_squared_to(intersect))
