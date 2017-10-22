@@ -1,4 +1,3 @@
-import pygame
 
 
 class LineSegmentSurface:
@@ -28,6 +27,7 @@ class LineSegmentSurface:
     def ends(self):
         return self.line.copy()
 
+
 class CircleSegmentSurface:
     def __init__(self, side, radius, concave):
         self.side = side
@@ -37,7 +37,7 @@ class CircleSegmentSurface:
         side_start, side_end = side
         chord_distance = (radius**2-(side_start.distance_squared_to(side_end)/4))**.5
         halfway = side_start.lerp(side_end)
-        self.position = halfway +  (side_end - halfway).rotate_ip(90)
+        self.position = halfway + (side_end - halfway).rotate_ip(90).scale_to_length(chord_distance)
 
     def get_normal(self, point):
         return point - self.position
