@@ -1,6 +1,7 @@
 import materials
 
 max_frame_lines = 200
+max_interactions = 20
 
 
 class CustomMaterials(materials.Material):

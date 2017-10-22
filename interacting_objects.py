@@ -14,7 +14,6 @@ class LineSegmentSurface:
 
     def get_intersection(self, ray):
         line_start = self.line[0]
-        # vector along line
         ray_start, ray_direction = ray
         cross = self.vector_along_line.cross(ray_direction)
         if cross == 0:
@@ -96,7 +95,7 @@ class Lens:
         """
         return intersects_and_normals[(1-(len(intersects_and_normals) % 2))*inside]
 
-    def interact(self, wavelength, ray, inside):
+    def interact(self, ray, wavelength, inside):
         n1 = 1
         n2 = self.material.n(wavelength)
         if inside:
@@ -104,7 +103,9 @@ class Lens:
 
         intersection, normal = self.get_collision(ray, inside)
         _ray_start, ray_direction = ray
-        return (intersection, math.asin(math.sin(ray_direction)*n1/n2)), wavelength
+        result = (intersection, math.asin(math.sin(ray_direction)*n1/n2))
+        # if result[1] > 1 ray is still inside
+        return result, result[1] > 1
 
 
 class PointSource:
