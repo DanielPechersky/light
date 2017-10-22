@@ -4,22 +4,28 @@ import config
 
 def simulate(light_sources, interacting_objects):
     for light_source in light_sources:
-        yield simulate_ray(light_source.get_light_rays_by_color(), interacting_objects)
+        for ray, wavelength in light_source.get_light_rays_by_color():
+            yield simulate_ray(ray, wavelength, interacting_objects), wavelength
 
 
-def simulate_ray(ray, interacting_objects):
-    points = []
-    wavelength = ray
+def simulate_ray(ray, wavelength, interacting_objects):
+    points = [ray[0]]
     for object in interacting_objects:
-        for line in object.bounding_box():
+        for line in mathtools.rect_lines(object.bounding_box):
             if mathtools.does_intersect(line, ray):
-                ray, inside = object.interact(ray=ray[0], wavelength=ray[1], inside=False)
-                points.append(ray[0])
-                if len(points) == config.max_interactions:
-                    return points, wavelength
-                while inside:
-                    ray, inside = object.interact(ray=ray[0], wavelength=ray[1], inside=True)
+                results = object.interact(ray=ray, wavelength=wavelength, inside=False)
+                if results is not None:
+                    ray, inside = results
                     points.append(ray[0])
                     if len(points) == config.max_interactions:
-                        return points, wavelength
-
+                        return points
+                    while inside:
+                        results = object.interact(ray=ray, wavelength=wavelength, inside=False)
+                        if results is not None:
+                            ray, inside = results
+                            points.append(ray[0])
+                            if len(points) == config.max_interactions:
+                                return points
+            else:
+                points.append((ray[0]+ray[1])*10000)
+                return points

@@ -1,12 +1,13 @@
 import pygame
 import functools
 import math
+import numpy as np
 
 
 class LineSegmentSurface:
     def __init__(self, line):
         self.line = line
-        self.normal = self.line.normalize().rotate(90)
+        self.normal = self.line[0].normalize().rotate(90)
 
         line_start, line_end = line
         self.bounding_box = pygame.Rect(line_start, line_end-line_start)
@@ -36,16 +37,19 @@ class LineSegmentSurface:
 
 class CircleSegmentSurface:
     def __init__(self, side, radius, concave):
-        self.side = side
+        self.side = tuple(pygame.math.Vector2(p) for p in side)
         self.radius = radius
-        self.cut = side * 1 if concave else -1
+        self.cut = tuple(pygame.math.Vector2(v) for v in self.side)
+        if not concave:
+            self.cut[0], self.cut[1] = self.cut[1], self.cut[0]
 
-        side_start, side_end = side
+        side_start, side_end = self.side
         chord_distance = (radius**2-(side_start.distance_squared_to(side_end)/4))**.5
         halfway = side_start.lerp(side_end, .5)
-        self.position = halfway + (side_end - halfway).rotate_ip(90).scale_to_length(chord_distance)
+        self.position = halfway + (side_end - halfway).rotate(90)
+        self.position.scale_to_length(chord_distance)
 
-        self.bounding_box = pygame.Rect((self.position-radius/2,)*2, (radius,)*2)
+        self.bounding_box = pygame.Rect(self.position-pygame.math.Vector2((radius/2,)*2), (radius,)*2)
 
     def get_normal(self, point):
         return point - self.position
@@ -59,18 +63,23 @@ class CircleSegmentSurface:
         if disc < 0:
             return None
         sqrt_disc = disc ** .5
-        intersections = [ray_start+intersection_on_line for intersection_on_line in
+        intersections = [ray_start+intersection_on_line*ray_direction for intersection_on_line in
                          (-b+sqrt_disc/(2*a), -b-sqrt_disc/(2*a))
-                         if intersection_on_line >= 0 and self.cut.angle_to(ray_start+intersection_on_line) >= 0]
-        if list(intersections) == 0:
+                         if intersection_on_line >= 0 and
+                         self.vector_along_cut.angle_to(ray_start+intersection_on_line*ray_direction-self.cut[0]) >= 0]
+        if len(intersections) == 0:
             return None
         intersections.sort(key=lambda intersect: ray[0].distance_squared_to(intersect))
         intersection = intersections[0]
         return intersection, self.get_normal(intersection)
 
     @property
+    def vector_along_cut(self):
+        return self.cut[1] - self.cut[0]
+
+    @property
     def ends(self):
-        return self.side.copy()
+        return [pygame.math.Vector2(v) for v in self.side]
 
 
 class Lens:
@@ -84,9 +93,10 @@ class Lens:
             map(lambda surface: surface.bounding_box, surfaces))
 
     def get_collision(self, ray, inside):
-        intersects_and_normals = [(intersect, surface.get_normal(intersect)) for intersect, surface in
-                                  filter(lambda x: x[0] is not None,
-                                         (surface.get_intersection(ray), surface for surface in self.surfaces))]
+        intersects_and_normals = list(filter(lambda x: x is not None,
+                                        (surface.get_intersection(ray) for surface in self.surfaces)))
+        if len(intersects_and_normals) == 0:
+            return None
         intersects_and_normals.sort(key=lambda intersect_and_normal: ray[0].distance_squared_to(intersect_and_normal[0]))
         """
         if inside and there is an even number of intercepts,
@@ -101,11 +111,14 @@ class Lens:
         if inside:
             n1, n2 = n2, n1
 
-        intersection, normal = self.get_collision(ray, inside)
+        collision = self.get_collision(ray, inside)
+        if collision is None:
+            return None
+        intersection, normal = collision
         _ray_start, ray_direction = ray
-        result = (intersection, math.asin(math.sin(ray_direction)*n1/n2))
+        result = (intersection, pygame.math.Vector2(1, 0).rotate(math.asin(math.sin(ray_direction.as_polar()[1])*n1/n2)))
         # if result[1] > 1 ray is still inside
-        return result, result[1] > 1
+        return result, result[1].as_polar()[1] > 1
 
 
 class PointSource:
@@ -126,12 +139,12 @@ class PointSource:
 
     def get_light_rays_by_color(self):
         for wavelength in self.wavelengths:
-            for angle in range(self.start_angle, self.end_angle, self._step_angle()):
-                yield (self.position.copy(), pygame.math.Vector2(1, 0).rotate_ip(angle)), wavelength
+            for angle in np.arange(self.start_angle, self.end_angle, self._step_angle):
+                yield (pygame.math.Vector2(self.position), pygame.math.Vector2(1, 0).rotate(angle)), wavelength
 
     def get_light_rays_by_angle(self):
-        for angle in range(self.start_angle, self.end_angle, self._step_angle()):
+        for angle in np.arange(self.start_angle, self.end_angle, self._step_angle):
             for wavelength in self.wavelengths:
-                yield (self.position.copy(), pygame.math.Vector2(1, 0).rotate_ip(angle)), wavelength
+                yield (pygame.math.Vector2(self.position), pygame.math.Vector2(1, 0).rotate(angle)), wavelength
 
 

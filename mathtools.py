@@ -1,3 +1,13 @@
+import pygame
+
+
+def rect_lines(rect):
+    vertices = [pygame.math.Vector2(vertex) for vertex in
+                (rect.topleft, rect.topright, rect.bottomright, rect.bottomleft)]
+    for index, point in enumerate(vertices):
+        yield (point, vertices[(index+1) % 4])
+
+
 def does_intersect(line, ray):
     line_start, line_end = line
     vector_along_line = line_end-line_start
